@@ -1,0 +1,25 @@
+{
+  "name": "hash-and-manifest",
+  "version": "0.1.0",
+  "description": "Hash directory files a generate configurable manifest",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adamkiss/hash-and-manifest.git"
+  },
+  "keywords": [
+    "hash",
+    "manifest",
+    "asset",
+    "fingerprint"
+  ],
+  "author": "Adam Kiss",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adamkiss/hash-and-manifest/issues"
+  },
+  "homepage": "https://github.com/adamkiss/hash-and-manifest#readme"
+}
