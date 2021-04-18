@@ -13,21 +13,32 @@ const readDir = util.promisify(fs.readdir)
 
 /*
 @note This is for now. I usually run assets from project root
-      If it later bites me in the ass, I'll have this prepared
+			If it later bites me in the ass, I'll have this prepared
 */
 const findProjectRoot = () => process.cwd()
 
 ;(async () => {
-  
-  const config = require(findProjectRoot() + "/ham.config.js")
+	const config = require(findProjectRoot() + "/ham.config.js")
 
-  console.log('Renaming files to their hashes & generating a manifest…')
+	console.log('Renaming files to their hashes & generating a manifest…')
 
-  const files = await readDir(config.directory)
-  const manifestFiles = {}
-  await Promise.all(files.map(async fileName => {
-    const file = path.parse(fileName)
-    const hash = await hasha.fromFile(path.join(config.directory, fileName), {algorithm: 'md5'})
-    manifestFiles[file.base] = [file.name, '.', hash, file.ext].join('')
-  }))
+	// Return empty manifest if called as `hash-and-manifest empty`
+	if (process.argv.length === 3 && process.argv[2]) {
+		return await writeFile(config.manifest, config.template({}))
+	}
+
+	// Get list of files, their hashes and rename them
+	const files = await readDir(config.directory)
+	const manifest = {}
+	await Promise.all(files.map(async fileName => {
+		const file = path.parse(fileName)
+		const hash = await hasha.fromFile(path.join(config.directory, fileName), {algorithm: 'md5'})
+
+		manifest[file.base] = [file.name, '.', hash, file.ext].join('')
+
+		await renameFileOrOK(file.base, manifest[file.base])
+	}))
+
+	// Generate the manifest
+	await writeFile(config.manifest, config.template(manifest))
 })()

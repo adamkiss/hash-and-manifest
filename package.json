@@ -6,10 +6,7 @@
   "bin": {
     "hash-and-manifest": "src/index.js"
   },
-  "files": [
-    "src/",
-    "config/"
-  ],
+  "files": ["src/"],
   "scripts": {},
   "repository": {
     "type": "git",
