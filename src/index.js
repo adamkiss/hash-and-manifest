@@ -38,7 +38,7 @@ const findProjectRoot = () => process.cwd()
 
 		await renameFileOrOK(
 			path.join(config.directory, file.base),
-			path.join(manifest[file.base])
+			path.join(config.directory, manifest[file.base])
 		)
 	}))
 
