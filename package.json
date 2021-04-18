@@ -1,12 +1,14 @@
 {
   "name": "hash-and-manifest",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Hash directory files a generate configurable manifest",
   "main": "index.js",
   "bin": {
     "hash-and-manifest": "src/index.js"
   },
-  "files": ["src/"],
+  "files": [
+    "src/"
+  ],
   "scripts": {},
   "repository": {
     "type": "git",
