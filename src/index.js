@@ -8,7 +8,7 @@ const hasha = require('hasha')
 const writeFile = util.promisify(fs.writeFile)
 const deleteFile = util.promisify(fs.unlink)
 const renameFile = util.promisify(fs.rename)
-const renameFileOrOK = (oldFile, newFile) => renameFile(oldFile, newFile).catch(err => null)
+const renameFileOrOK = (oldFile, newFile) => renameFile(oldFile, newFile).catch(err => console.error(err))
 const readDir = util.promisify(fs.readdir)
 
 /*
@@ -36,7 +36,10 @@ const findProjectRoot = () => process.cwd()
 
 		manifest[file.base] = [file.name, '.', hash, file.ext].join('')
 
-		await renameFileOrOK(file.base, manifest[file.base])
+		await renameFileOrOK(
+			path.join(config.directory, file.base),
+			path.join(manifest[file.base])
+		)
 	}))
 
 	// Generate the manifest
