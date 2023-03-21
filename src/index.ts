@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 
-const path = require('path')
-const fs = require('fs')
-const util = require('util')
-const hasha = require('hasha')
+import path from 'path'
+import fs from 'fs'
+import util from 'util'
+import hasha from 'hasha'
 
 const writeFile = util.promisify(fs.writeFile)
-const deleteFile = util.promisify(fs.unlink)
 const renameFile = util.promisify(fs.rename)
-const renameFileOrOK = (oldFile, newFile) => renameFile(oldFile, newFile).catch(err => console.error(err))
+const renameFileOrOK = (oldFile: string, newFile: string) => renameFile(oldFile, newFile).catch(err => console.error(err))
 const readDir = util.promisify(fs.readdir)
 
 /*
@@ -29,7 +28,7 @@ const findProjectRoot = () => process.cwd()
 
 	// Get list of files, their hashes and rename them
 	const files = await readDir(config.directory)
-	const manifest = {}
+	const manifest: { [originalName: string]: string } = {}
 	await Promise.all(files.map(async fileName => {
 		const file = path.parse(fileName)
 		const hash = await hasha.fromFile(path.join(config.directory, fileName), {algorithm: 'md5'})
