@@ -31,11 +31,12 @@ const findProjectRoot = () => process.cwd();
     await Promise.all(files.map(async (fileName) => {
         const file = path_1.default.parse(fileName);
         const hash = await hasha_1.default.fromFile(path_1.default.join(config.directory, fileName), { algorithm: 'md5' });
+        const newFileName = `${file.name}-${hash}.${file.ext}`;
         let srcFilePath = path_1.default.join(config.directory, file.base);
-        let dstFilePath = path_1.default.join(config.directory, manifest[file.base]);
+        let dstFilePath = path_1.default.join(config.directory, newFileName);
         if (config.output) {
             const dstDir = path_1.default.join(config.output, config.directory);
-            const dstFilePath = path_1.default.join(dstDir, manifest[file.base]);
+            const dstFilePath = path_1.default.join(dstDir, newFileName);
             await mkdir(dstDir, { recursive: true });
             await copyFile(srcFilePath, dstFilePath);
         }
@@ -46,7 +47,7 @@ const findProjectRoot = () => process.cwd();
             manifest[srcFilePath] = dstFilePath;
         }
         else {
-            manifest[file.base] = [file.name, '.', hash, file.ext].join('');
+            manifest[file.base] = newFileName;
         }
     }));
     // Generate the manifest
