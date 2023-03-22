@@ -24,7 +24,7 @@ const findProjectRoot = () => process.cwd()
 
 	// Return empty manifest if called as `hash-and-manifest empty`
 	if (process.argv.length === 3 && process.argv[2]) {
-		return await writeFile(config.manifest, config.template({}))
+		return await writeFile(config.manifest?.path, config.template({}))
 	}
 
 	// Get list of files, their hashes and rename them
@@ -33,24 +33,26 @@ const findProjectRoot = () => process.cwd()
 	await Promise.all(files.map(async fileName => {
 		const file = path.parse(fileName)
 		const hash = await hasha.fromFile(path.join(config.directory, fileName), {algorithm: 'md5'})
-
-		manifest[file.base] = [file.name, '.', hash, file.ext].join('')
+	
+		let srcFilePath = path.join(config.directory, file.base)
+		let dstFilePath = path.join(config.directory, manifest[file.base])
 
 		if (config.output) {
 			const dstDir = path.join(config.output, config.directory)
+			const dstFilePath = path.join(dstDir, manifest[file.base])
 			await mkdir(dstDir, { recursive: true })
-			await copyFile(
-				path.join(config.directory, file.base),
-				path.join(dstDir, manifest[file.base])
-			)
+			await copyFile(srcFilePath, dstFilePath)
 		} else {
-			await renameFile(
-				path.join(config.directory, file.base),
-				path.join(config.directory, manifest[file.base])
-			)
+			await renameFile(srcFilePath, dstFilePath)
+		}
+
+		if (config.manifest?.fullPath) {
+			manifest[srcFilePath] = dstFilePath
+		} else {
+			manifest[file.base] = [file.name, '.', hash, file.ext].join('')
 		}
 	}))
 
 	// Generate the manifest
-	await writeFile(config.manifest, config.template(manifest))
+	await writeFile(config.manifest?.path, config.manifest?.template(manifest))
 })()

@@ -23,7 +23,7 @@ const findProjectRoot = () => process.cwd();
     console.log('Renaming files to their hashes & generating a manifest…');
     // Return empty manifest if called as `hash-and-manifest empty`
     if (process.argv.length === 3 && process.argv[2]) {
-        return await writeFile(config.manifest, config.template({}));
+        return await writeFile(config.manifest?.path, config.template({}));
     }
     // Get list of files, their hashes and rename them
     const files = await readDir(config.directory);
@@ -31,16 +31,24 @@ const findProjectRoot = () => process.cwd();
     await Promise.all(files.map(async (fileName) => {
         const file = path_1.default.parse(fileName);
         const hash = await hasha_1.default.fromFile(path_1.default.join(config.directory, fileName), { algorithm: 'md5' });
-        manifest[file.base] = [file.name, '.', hash, file.ext].join('');
+        let srcFilePath = path_1.default.join(config.directory, file.base);
+        let dstFilePath = path_1.default.join(config.directory, manifest[file.base]);
         if (config.output) {
             const dstDir = path_1.default.join(config.output, config.directory);
+            const dstFilePath = path_1.default.join(dstDir, manifest[file.base]);
             await mkdir(dstDir, { recursive: true });
-            await copyFile(path_1.default.join(config.directory, file.base), path_1.default.join(dstDir, manifest[file.base]));
+            await copyFile(srcFilePath, dstFilePath);
         }
         else {
-            await renameFile(path_1.default.join(config.directory, file.base), path_1.default.join(config.directory, manifest[file.base]));
+            await renameFile(srcFilePath, dstFilePath);
+        }
+        if (config.manifest?.fullPath) {
+            manifest[srcFilePath] = dstFilePath;
+        }
+        else {
+            manifest[file.base] = [file.name, '.', hash, file.ext].join('');
         }
     }));
     // Generate the manifest
-    await writeFile(config.manifest, config.template(manifest));
+    await writeFile(config.manifest?.path, config.manifest?.template(manifest));
 })();
