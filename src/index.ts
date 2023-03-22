@@ -7,7 +7,7 @@ import hasha from 'hasha'
 
 const writeFile = util.promisify(fs.writeFile)
 const renameFile = util.promisify(fs.rename)
-const renameFileOrOK = (oldFile: string, newFile: string) => renameFile(oldFile, newFile).catch(err => console.error(err))
+const copyFile = util.promisify(fs.copyFile)
 const readDir = util.promisify(fs.readdir)
 
 /*
@@ -35,10 +35,17 @@ const findProjectRoot = () => process.cwd()
 
 		manifest[file.base] = [file.name, '.', hash, file.ext].join('')
 
-		await renameFileOrOK(
-			path.join(config.directory, file.base),
-			path.join(config.directory, manifest[file.base])
-		)
+		if (config.output) {
+			await copyFile(
+				path.join(config.directory, file.base),
+				path.join(config.output, manifest[file.base])
+			)
+		} else {
+			await renameFile(
+				path.join(config.directory, file.base),
+				path.join(config.directory, manifest[file.base])
+			)
+		}
 	}))
 
 	// Generate the manifest
