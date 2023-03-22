@@ -11,28 +11,16 @@ const copyFile = util.promisify(fs.copyFile)
 const readDir = util.promisify(fs.readdir)
 const mkdir = util.promisify(fs.mkdir)
 
-/*
-@note This is for now. I usually run assets from project root
-			If it later bites me in the ass, I'll have this prepared
-*/
-const findProjectRoot = () => process.cwd()
+const manifest: { [originalName: string]: string } = {}
 
-;(async () => {
-	const config = require(findProjectRoot() + "/ham.config.js")
-
-	console.log('Renaming files to their hashes & generating a manifest…')
-
-	// Return empty manifest if called as `hash-and-manifest empty`
-	if (process.argv.length === 3 && process.argv[2]) {
-		return await writeFile(config.manifest?.path, config.template({}))
-	}
-
-	// Get list of files, their hashes and rename them
-	const files = await readDir(config.directory)
-	const manifest: { [originalName: string]: string } = {}
-	await Promise.all(files.map(async fileName => {
-		const file = path.parse(fileName)
-		const hash = await hasha.fromFile(path.join(config.directory, fileName), { algorithm: 'md5' })
+async function processDirectory(dirPath: string, config: any) {
+	const elements = await readDir(dirPath)
+	await Promise.all(elements.map(async elementPath => {
+		if (fs.lstatSync(elementPath).isDirectory()) {
+			return await processDirectory(elementPath, config)
+		}
+		const file = path.parse(elementPath)
+		const hash = await hasha.fromFile(path.join(config.directory, elementPath), { algorithm: 'md5' })
 		const newFileName = `${file.name}-${hash}${file.ext}`
 	
 		let srcFilePath = path.join(config.directory, file.base)
@@ -53,6 +41,26 @@ const findProjectRoot = () => process.cwd()
 			manifest[file.base] = newFileName
 		}
 	}))
+}
+
+/*
+@note This is for now. I usually run assets from project root
+			If it later bites me in the ass, I'll have this prepared
+*/
+const findProjectRoot = () => process.cwd()
+
+;(async () => {
+	const config = require(`${findProjectRoot()}/ham.config.js`)
+
+	console.log('Renaming files to their hashes & generating a manifest…')
+
+	// Return empty manifest if called as `hash-and-manifest empty`
+	if (process.argv.length === 3 && process.argv[2]) {
+		return await writeFile(config.manifest?.path, config.template({}))
+	}
+
+	// Get list of files, their hashes and rename them
+	await processDirectory(config.directory, config)
 
 	// Generate the manifest
 	await writeFile(config.manifest?.path, config.manifest?.template(manifest))

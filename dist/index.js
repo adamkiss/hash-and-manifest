@@ -13,24 +13,15 @@ const renameFile = util_1.default.promisify(fs_1.default.rename);
 const copyFile = util_1.default.promisify(fs_1.default.copyFile);
 const readDir = util_1.default.promisify(fs_1.default.readdir);
 const mkdir = util_1.default.promisify(fs_1.default.mkdir);
-/*
-@note This is for now. I usually run assets from project root
-            If it later bites me in the ass, I'll have this prepared
-*/
-const findProjectRoot = () => process.cwd();
-(async () => {
-    const config = require(findProjectRoot() + "/ham.config.js");
-    console.log('Renaming files to their hashes & generating a manifest…');
-    // Return empty manifest if called as `hash-and-manifest empty`
-    if (process.argv.length === 3 && process.argv[2]) {
-        return await writeFile(config.manifest?.path, config.template({}));
-    }
-    // Get list of files, their hashes and rename them
-    const files = await readDir(config.directory);
-    const manifest = {};
-    await Promise.all(files.map(async (fileName) => {
-        const file = path_1.default.parse(fileName);
-        const hash = await hasha_1.default.fromFile(path_1.default.join(config.directory, fileName), { algorithm: 'md5' });
+const manifest = {};
+async function processDirectory(dirPath, config) {
+    const elements = await readDir(dirPath);
+    await Promise.all(elements.map(async (elementPath) => {
+        if (fs_1.default.lstatSync(elementPath).isDirectory()) {
+            return await processDirectory(elementPath, config);
+        }
+        const file = path_1.default.parse(elementPath);
+        const hash = await hasha_1.default.fromFile(path_1.default.join(config.directory, elementPath), { algorithm: 'md5' });
         const newFileName = `${file.name}-${hash}${file.ext}`;
         let srcFilePath = path_1.default.join(config.directory, file.base);
         let dstFilePath = path_1.default.join(config.directory, newFileName);
@@ -50,6 +41,21 @@ const findProjectRoot = () => process.cwd();
             manifest[file.base] = newFileName;
         }
     }));
+}
+/*
+@note This is for now. I usually run assets from project root
+            If it later bites me in the ass, I'll have this prepared
+*/
+const findProjectRoot = () => process.cwd();
+(async () => {
+    const config = require(`${findProjectRoot()}/ham.config.js`);
+    console.log('Renaming files to their hashes & generating a manifest…');
+    // Return empty manifest if called as `hash-and-manifest empty`
+    if (process.argv.length === 3 && process.argv[2]) {
+        return await writeFile(config.manifest?.path, config.template({}));
+    }
+    // Get list of files, their hashes and rename them
+    await processDirectory(config.directory, config);
     // Generate the manifest
     await writeFile(config.manifest?.path, config.manifest?.template(manifest));
 })();
