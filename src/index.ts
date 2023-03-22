@@ -32,15 +32,15 @@ const findProjectRoot = () => process.cwd()
 	const manifest: { [originalName: string]: string } = {}
 	await Promise.all(files.map(async fileName => {
 		const file = path.parse(fileName)
-		const hash = await hasha.fromFile(path.join(config.directory, fileName), {algorithm: 'md5'})
-		const newFileName = `${file.name}-${hash}.${file.ext}`
+		const hash = await hasha.fromFile(path.join(config.directory, fileName), { algorithm: 'md5' })
+		const newFileName = `${file.name}-${hash}${file.ext}`
 	
 		let srcFilePath = path.join(config.directory, file.base)
 		let dstFilePath = path.join(config.directory, newFileName)
 
 		if (config.output) {
 			const dstDir = path.join(config.output, config.directory)
-			const dstFilePath = path.join(dstDir, newFileName)
+			dstFilePath = path.join(dstDir, newFileName)
 			await mkdir(dstDir, { recursive: true })
 			await copyFile(srcFilePath, dstFilePath)
 		} else {
