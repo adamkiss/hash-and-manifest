@@ -38,7 +38,7 @@ const findProjectRoot = () => process.cwd()
 		if (config.output) {
 			await copyFile(
 				path.join(config.directory, file.base),
-				path.join(config.output, manifest[file.base])
+				path.join(config.output, config.directory, manifest[file.base])
 			)
 		} else {
 			await renameFile(
