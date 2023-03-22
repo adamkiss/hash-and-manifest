@@ -15,28 +15,28 @@ const manifest: { [originalName: string]: string } = {}
 
 async function processDirectory(dirPath: string, config: any) {
 	const elements = await readDir(dirPath)
-	await Promise.all(elements.map(async elementPath => {
+	await Promise.all(elements.map(async elementName => {
+		const elementPath = path.join(dirPath, elementName)
 		if (fs.lstatSync(elementPath).isDirectory()) {
 			return await processDirectory(elementPath, config)
 		}
-		const file = path.parse(elementPath)
-		const hash = await hasha.fromFile(path.join(config.directory, elementPath), { algorithm: 'md5' })
+		const file = path.parse(elementName)
+		const hash = await hasha.fromFile(elementPath, { algorithm: 'md5' })
 		const newFileName = `${file.name}-${hash}${file.ext}`
 	
-		let srcFilePath = path.join(config.directory, file.base)
 		let dstFilePath = path.join(config.directory, newFileName)
 
 		if (config.output) {
-			const dstDir = path.join(config.output, config.directory)
+			const dstDir = path.join(config.output, config.directory, dirPath)
 			dstFilePath = path.join(dstDir, newFileName)
 			await mkdir(dstDir, { recursive: true })
-			await copyFile(srcFilePath, dstFilePath)
+			await copyFile(elementPath, dstFilePath)
 		} else {
-			await renameFile(srcFilePath, dstFilePath)
+			await renameFile(elementPath, dstFilePath)
 		}
 
 		if (config.manifest?.fullPath) {
-			manifest[srcFilePath] = dstFilePath
+			manifest[elementPath] = dstFilePath
 		} else {
 			manifest[file.base] = newFileName
 		}
