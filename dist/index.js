@@ -26,7 +26,7 @@ async function processDirectory(dirPath, config) {
         const newFileName = `${file.name}-${hash}${file.ext}`;
         let dstFilePath = path_1.default.join(config.directory, newFileName);
         if (config.output) {
-            const dstDir = path_1.default.join(config.output, config.directory, dirPath);
+            const dstDir = path_1.default.join(config.output, dirPath);
             dstFilePath = path_1.default.join(dstDir, newFileName);
             await mkdir(dstDir, { recursive: true });
             await copyFile(elementPath, dstFilePath);
