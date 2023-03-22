@@ -9,6 +9,7 @@ const writeFile = util.promisify(fs.writeFile)
 const renameFile = util.promisify(fs.rename)
 const copyFile = util.promisify(fs.copyFile)
 const readDir = util.promisify(fs.readdir)
+const mkdir = util.promisify(fs.mkdir)
 
 /*
 @note This is for now. I usually run assets from project root
@@ -36,9 +37,11 @@ const findProjectRoot = () => process.cwd()
 		manifest[file.base] = [file.name, '.', hash, file.ext].join('')
 
 		if (config.output) {
+			const dstDir = path.join(config.output, config.directory)
+			await mkdir(dstDir, { recursive: true })
 			await copyFile(
 				path.join(config.directory, file.base),
-				path.join(config.output, config.directory, manifest[file.base])
+				path.join(dstDir, manifest[file.base])
 			)
 		} else {
 			await renameFile(

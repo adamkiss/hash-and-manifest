@@ -12,6 +12,7 @@ const writeFile = util_1.default.promisify(fs_1.default.writeFile);
 const renameFile = util_1.default.promisify(fs_1.default.rename);
 const copyFile = util_1.default.promisify(fs_1.default.copyFile);
 const readDir = util_1.default.promisify(fs_1.default.readdir);
+const mkdir = util_1.default.promisify(fs_1.default.mkdir);
 /*
 @note This is for now. I usually run assets from project root
             If it later bites me in the ass, I'll have this prepared
@@ -32,7 +33,9 @@ const findProjectRoot = () => process.cwd();
         const hash = await hasha_1.default.fromFile(path_1.default.join(config.directory, fileName), { algorithm: 'md5' });
         manifest[file.base] = [file.name, '.', hash, file.ext].join('');
         if (config.output) {
-            await copyFile(path_1.default.join(config.directory, file.base), path_1.default.join(config.output, config.directory, manifest[file.base]));
+            const dstDir = path_1.default.join(config.output, config.directory);
+            await mkdir(dstDir, { recursive: true });
+            await copyFile(path_1.default.join(config.directory, file.base), path_1.default.join(dstDir, manifest[file.base]));
         }
         else {
             await renameFile(path_1.default.join(config.directory, file.base), path_1.default.join(config.directory, manifest[file.base]));
