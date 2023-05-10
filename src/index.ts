@@ -25,9 +25,10 @@ async function processDirectory(dirPath: string, config: any) {
 		const newFileName = `${file.name}-${hash}${file.ext}`
 	
 		let dstFilePath = path.join(config.directory, newFileName)
-
+		
 		if (config.output) {
-			const dstDir = path.join(config.output, path.relative(config.directory, dirPath))
+			const outputDirRelativePath = path.relative(config.directory, dirPath)
+			const dstDir = path.join(config.output, outputDirRelativePath)
 			dstFilePath = path.join(dstDir, newFileName)
 			await mkdir(dstDir, { recursive: true })
 			await copyFile(elementPath, dstFilePath)
@@ -36,7 +37,7 @@ async function processDirectory(dirPath: string, config: any) {
 		}
 
 		if (config.manifest?.fullPath) {
-			manifest[elementPath] = dstFilePath
+			manifest[path.relative(config.directory, elementPath)] = path.relative(config.output, dstFilePath)
 		} else {
 			manifest[file.base] = newFileName
 		}

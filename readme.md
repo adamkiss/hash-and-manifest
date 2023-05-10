@@ -42,7 +42,7 @@ module.exports = {
 - `directory`: string, describes a path to your assets directory relative to current working directory
 - `output`: string, describes a path to your destination directory relative to current working directory. If no output dir is provided then all original files will be renamed
 - `manifest.name`: string, relative path with filename and desired extension. What you do with the manifest further is on you
-- `manifest.fullPath`: boolean, whether to include the full path to each asset on the manifest file or just the file names
+- `manifest.fullPath`: boolean, whether to include the full relative path to each asset on the manifest file or just the file names
 - `manifest.template`: function, which generates the content of manifest for you. It is given one argument: `files` object
 	- `files` object: object in the format `{original_name: hashed_name}`
 
