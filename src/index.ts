@@ -27,7 +27,7 @@ async function processDirectory(dirPath: string, config: any) {
 		let dstFilePath = path.join(config.directory, newFileName)
 
 		if (config.output) {
-			const dstDir = path.join(config.output, dirPath)
+			const dstDir = path.join(config.output, path.relative(config.directory, dirPath))
 			dstFilePath = path.join(dstDir, newFileName)
 			await mkdir(dstDir, { recursive: true })
 			await copyFile(elementPath, dstFilePath)
