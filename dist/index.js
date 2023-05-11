@@ -22,24 +22,33 @@ async function processDirectory(dirPath, config) {
             return await processDirectory(elementPath, config);
         }
         const file = path_1.default.parse(elementName);
+        const exclude = (config.exclude) && (config.exclude.includes(file.base));
         const hash = await hasha_1.default.fromFile(elementPath, { algorithm: 'md5' });
         const newFileName = `${file.name}-${hash}${file.ext}`;
         let dstFilePath = path_1.default.join(config.directory, newFileName);
         if (config.output) {
             const outputDirRelativePath = path_1.default.relative(config.directory, dirPath);
             const dstDir = path_1.default.join(config.output, outputDirRelativePath);
-            dstFilePath = path_1.default.join(dstDir, newFileName);
+            // Check if the filename is to be excluded
+            if (exclude) {
+                dstFilePath = path_1.default.join(dstDir, file.base);
+            }
+            else {
+                dstFilePath = path_1.default.join(dstDir, newFileName);
+            }
             await mkdir(dstDir, { recursive: true });
             await copyFile(elementPath, dstFilePath);
         }
         else {
             await renameFile(elementPath, dstFilePath);
         }
-        if (config.manifest?.fullPath) {
-            manifest[path_1.default.relative(config.directory, elementPath)] = path_1.default.relative(config.output, dstFilePath);
-        }
-        else {
-            manifest[file.base] = newFileName;
+        if (!exclude) {
+            if (config.manifest?.fullPath) {
+                manifest[path_1.default.relative(config.directory, elementPath)] = path_1.default.relative(config.output, dstFilePath);
+            }
+            else {
+                manifest[file.base] = newFileName;
+            }
         }
     }));
 }

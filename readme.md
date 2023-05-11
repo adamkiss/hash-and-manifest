@@ -31,6 +31,7 @@ Create the `ham.config.js` file in the root of your project, like so:
 module.exports = {
 	directory: 'path/to/assets',
 	output: 'destination/path',
+	exclude: ['robots.txt'],
 	manifest: {
 		name: 'path/to/manifest.json',
 		fullPath: true,
@@ -41,6 +42,7 @@ module.exports = {
 
 - `directory`: string, describes a path to your assets directory relative to current working directory
 - `output`: string, describes a path to your destination directory relative to current working directory. If no output dir is provided then all original files will be renamed
+- `exclude`: array of strings, list with all the filenames to exclude from the process, they'll be copied over to the output directory (if specified) but their names won't be changed and they won't be in the manifest
 - `manifest.name`: string, relative path with filename and desired extension. What you do with the manifest further is on you
 - `manifest.fullPath`: boolean, whether to include the full relative path to each asset on the manifest file or just the file names
 - `manifest.template`: function, which generates the content of manifest for you. It is given one argument: `files` object

@@ -21,6 +21,8 @@ async function processDirectory(dirPath: string, config: any) {
 			return await processDirectory(elementPath, config)
 		}
 		const file = path.parse(elementName)
+		const exclude = (config.exclude) && (config.exclude.includes(file.base))
+
 		const hash = await hasha.fromFile(elementPath, { algorithm: 'md5' })
 		const newFileName = `${file.name}-${hash}${file.ext}`
 	
@@ -29,17 +31,24 @@ async function processDirectory(dirPath: string, config: any) {
 		if (config.output) {
 			const outputDirRelativePath = path.relative(config.directory, dirPath)
 			const dstDir = path.join(config.output, outputDirRelativePath)
-			dstFilePath = path.join(dstDir, newFileName)
+			// Check if the filename is to be excluded
+			if (exclude) {
+				dstFilePath = path.join(dstDir, file.base)
+			} else {
+				dstFilePath = path.join(dstDir, newFileName)
+			}
 			await mkdir(dstDir, { recursive: true })
 			await copyFile(elementPath, dstFilePath)
 		} else {
 			await renameFile(elementPath, dstFilePath)
 		}
 
-		if (config.manifest?.fullPath) {
-			manifest[path.relative(config.directory, elementPath)] = path.relative(config.output, dstFilePath)
-		} else {
-			manifest[file.base] = newFileName
+		if (!exclude) {
+			if (config.manifest?.fullPath) {
+				manifest[path.relative(config.directory, elementPath)] = path.relative(config.output, dstFilePath)
+			} else {
+				manifest[file.base] = newFileName
+			}
 		}
 	}))
 }
