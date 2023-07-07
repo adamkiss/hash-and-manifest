@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import path from 'path'
-import fs from 'fs'
-import util from 'util'
-import hasha from 'hasha'
+const path = require('path')
+const fs = require('fs')
+const util = require('util')
+const hasha = require('hasha')
 
 const writeFile = util.promisify(fs.writeFile)
 const renameFile = util.promisify(fs.rename)
@@ -11,9 +11,9 @@ const copyFile = util.promisify(fs.copyFile)
 const readDir = util.promisify(fs.readdir)
 const mkdir = util.promisify(fs.mkdir)
 
-const manifest: { [originalName: string]: string } = {}
+const manifest = {}
 
-async function processDirectory(dirPath: string, config: any) {
+async function processDirectory(dirPath, config) {
 	const elements = await readDir(dirPath)
 	await Promise.all(elements.map(async elementName => {
 		const elementPath = path.join(dirPath, elementName)

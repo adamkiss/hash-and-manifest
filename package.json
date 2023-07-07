@@ -2,14 +2,14 @@
   "name": "hash-and-manifest",
   "version": "1.0.2",
   "description": "Hash directory files a generate configurable manifest",
-  "main": "src/index.ts",
+  "main": "src/index.js",
   "bin": {
-    "hash-and-manifest": "dist/index.js"
+    "hash-and-manifest": "src/index.js"
   },
-  "files": ["dist"],
-  "scripts": {
-    "build": "tsc"
-  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/adamkiss/hash-and-manifest.git"
@@ -28,8 +28,5 @@
   "homepage": "https://github.com/adamkiss/hash-and-manifest#readme",
   "dependencies": {
     "hasha": "^5.2.2"
-  },
-  "devDependencies": {
-    "ts-node": "^10.9.1"
   }
 }
