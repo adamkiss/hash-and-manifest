@@ -30,14 +30,22 @@ Create the `ham.config.js` file in the root of your project, like so:
 ``` js
 module.exports = {
 	directory: 'path/to/assets',
-	manifest: 'path/to/manifest.ext', 
-	template: (files) => { return string }
+	output: 'destination/path',
+	exclude: ['robots.txt'],
+	manifest: {
+		name: 'path/to/manifest.json',
+		fullPath: true,
+		template: (files) => JSON.stringify(files),
+	}
 }
 ```
 
 - `directory`: string, describes a path to your assets directory relative to current working directory
-- `manifest`: string, relative path with filename and desired extension. What you do with the manifest further is on you
-- `template`: function, which generates the content of manifest for you. It is given one argument: `files` object
+- `output`: string, describes a path to your destination directory relative to current working directory. If no output dir is provided then all original files will be renamed
+- `exclude`: array of strings, list with all the filenames to exclude from the process, they'll be copied over to the output directory (if specified) but their names won't be changed and they won't be in the manifest
+- `manifest.name`: string, relative path with filename and desired extension. What you do with the manifest further is on you
+- `manifest.fullPath`: boolean, whether to include the full relative path to each asset on the manifest file or just the file names
+- `manifest.template`: function, which generates the content of manifest for you. It is given one argument: `files` object
 	- `files` object: object in the format `{original_name: hashed_name}`
 
 Add a `hash-and-manifest` call in your `package.json` in the desired step of your build chain.
@@ -57,16 +65,19 @@ Note: I generate a function to be called in the end system which includes the li
 ``` js
 module.exports = {
 	directory: 'site/assets/dist',
-	manifest: 'data/assets.js',
-	template: files => (`module.exports = _ => file => {
-	const list = ['${Object.keys(files).join(`','`)}']
-	const files = {
-		${Object.keys(files).map(k => `'${k}': '${files[k]}'`).join(`,
-		`)}
-	}
+	manifest: {
+		name: 'data/assets.js',
+		fullPath: false,
+		template: files => (`module.exports = _ => file => {
+			const list = ['${Object.keys(files).join(`','`)}']
+			const files = {
+				${Object.keys(files).map(k => `'${k}': '${files[k]}'`).join(`,
+				`)}
+			}
 
-	return Object.keys(files).includes(file) ? ${'`dist/${files[file]}`'} : ${'`dev/${file}`'}
-}`)
+			return Object.keys(files).includes(file) ? ${'`dist/${files[file]}`'} : ${'`dev/${file}`'}
+		}`),
+	},
 }
 ```
 
@@ -75,18 +86,21 @@ module.exports = {
 ``` js
 module.exports = {
 	directory: 'source-folder',
-	manifest: 'site/snippets/_bundler.php',
-	template: files => (`<?php
-	if (! function_exists('bundle')) {
-		function bundle($key = '') {
-			$manifest = [
-				${Object.keys(files).map(k => `'${k}' => '${files[k]}'`).join(`,
-				`)}
-			];
-			return array_key_exists($key, $manifest) ? "dist/" . $manifest[$key] : "dev/" . $key;
-		}
-	}
-	`)
+	manifest:{
+		name: 'site/snippets/_bundler.php',
+		fullPath: true,
+		template: files => (`<?php
+			if (! function_exists('bundle')) {
+				function bundle($key = '') {
+					$manifest = [
+						${Object.keys(files).map(k => `'${k}' => '${files[k]}'`).join(`,
+						`)}
+					];
+					return array_key_exists($key, $manifest) ? "dist/" . $manifest[$key] : "dev/" . $key;
+				}
+			}
+		`),
+	},
 }
 ```
 

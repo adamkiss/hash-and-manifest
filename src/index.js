@@ -6,10 +6,52 @@ const util = require('util')
 const hasha = require('hasha')
 
 const writeFile = util.promisify(fs.writeFile)
-const deleteFile = util.promisify(fs.unlink)
 const renameFile = util.promisify(fs.rename)
-const renameFileOrOK = (oldFile, newFile) => renameFile(oldFile, newFile).catch(err => console.error(err))
+const copyFile = util.promisify(fs.copyFile)
 const readDir = util.promisify(fs.readdir)
+const mkdir = util.promisify(fs.mkdir)
+
+const manifest = {}
+
+async function processDirectory(dirPath, config) {
+	const elements = await readDir(dirPath)
+	await Promise.all(elements.map(async elementName => {
+		const elementPath = path.join(dirPath, elementName)
+		if (fs.lstatSync(elementPath).isDirectory()) {
+			return await processDirectory(elementPath, config)
+		}
+		const file = path.parse(elementName)
+		const exclude = (config.exclude) && (config.exclude.includes(file.base))
+
+		const hash = await hasha.fromFile(elementPath, { algorithm: 'md5' })
+		const newFileName = `${file.name}-${hash}${file.ext}`
+	
+		let dstFilePath = path.join(config.directory, newFileName)
+		
+		if (config.output) {
+			const outputDirRelativePath = path.relative(config.directory, dirPath)
+			const dstDir = path.join(config.output, outputDirRelativePath)
+			// Check if the filename is to be excluded
+			if (exclude) {
+				dstFilePath = path.join(dstDir, file.base)
+			} else {
+				dstFilePath = path.join(dstDir, newFileName)
+			}
+			await mkdir(dstDir, { recursive: true })
+			await copyFile(elementPath, dstFilePath)
+		} else {
+			await renameFile(elementPath, dstFilePath)
+		}
+
+		if (!exclude) {
+			if (config.manifest?.fullPath) {
+				manifest[path.relative(config.directory, elementPath)] = path.relative(config.output, dstFilePath)
+			} else {
+				manifest[file.base] = newFileName
+			}
+		}
+	}))
+}
 
 /*
 @note This is for now. I usually run assets from project root
@@ -18,30 +60,18 @@ const readDir = util.promisify(fs.readdir)
 const findProjectRoot = () => process.cwd()
 
 ;(async () => {
-	const config = require(findProjectRoot() + "/ham.config.js")
+	const config = require(`${findProjectRoot()}/ham.config.js`)
 
 	console.log('Renaming files to their hashes & generating a manifest…')
 
 	// Return empty manifest if called as `hash-and-manifest empty`
 	if (process.argv.length === 3 && process.argv[2]) {
-		return await writeFile(config.manifest, config.template({}))
+		return await writeFile(config.manifest?.path, config.template({}))
 	}
 
 	// Get list of files, their hashes and rename them
-	const files = await readDir(config.directory)
-	const manifest = {}
-	await Promise.all(files.map(async fileName => {
-		const file = path.parse(fileName)
-		const hash = await hasha.fromFile(path.join(config.directory, fileName), {algorithm: 'md5'})
-
-		manifest[file.base] = [file.name, '.', hash, file.ext].join('')
-
-		await renameFileOrOK(
-			path.join(config.directory, file.base),
-			path.join(config.directory, manifest[file.base])
-		)
-	}))
+	await processDirectory(config.directory, config)
 
 	// Generate the manifest
-	await writeFile(config.manifest, config.template(manifest))
+	await writeFile(config.manifest?.path, config.manifest?.template(manifest))
 })()
