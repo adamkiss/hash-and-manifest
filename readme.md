@@ -9,7 +9,7 @@ Simple tool to take a directory of files, calculate their md5 hashes, rename the
 ### Install
 
 ``` bash
-npm i -S hash-and-manifest
+pnpm i -S hash-and-manifest
 ```
 
 ### NPM scripts usage
@@ -25,10 +25,10 @@ npm i -S hash-and-manifest
 
 ### Usage: detailed
 
-Create the `ham.config.js` file in the root of your project, like so:
+Create a `ham.config.js` file in the root of your project, like so:
 
 ``` js
-module.exports = {
+export default {
 	directory: 'path/to/assets',
 	manifest: 'path/to/manifest.ext', 
 	template: (files) => { return string }
@@ -46,6 +46,12 @@ Add a `hash-and-manifest` call in your `package.json` in the desired step of you
 
 HAM also has a single argumented call to be used in npm scripts - `hash-and-manifest empty`, which generates _empty_ manifest. This is to be used at the beginning of watch/build loops, so you can expect existing manifest at the desired place at all times.
 
+### Silence the little "generating…" notification
+
+Both `hash-and-manifest` and `hash-and-manifest empty` can be silenced like so:
+- `hash-and-manifest -s`
+- `hash-and-manifest empty -s`
+
 ## Example configurations
 
 These are the configuration I use for my specific usecases: in `production` environment, assets get built into "dist" folder, fingerprinted and deployed. In development, they are watched and continuously built into dev folder and _not_ fingerprinted because cache is turned off locally. Both `dev` and `dist` folders are ignored in the repositories.
@@ -55,7 +61,7 @@ Note: I generate a function to be called in the end system which includes the li
 ### [Eleventy](https://www.11ty.dev)
 
 ``` js
-module.exports = {
+export default {
 	directory: 'site/assets/dist',
 	manifest: 'data/assets.js',
 	template: files => (`module.exports = _ => file => {
@@ -73,9 +79,9 @@ module.exports = {
 ### [Kirby CMS](https://getkirby.com)
 
 ``` js
-module.exports = {
+export default {
 	directory: 'source-folder',
-	manifest: 'site/snippets/_bundler.php',
+	manifest: 'site/snippets/_assets.php',
 	template: files => (`<?php
 	if (! function_exists('bundle')) {
 		function bundle($key = '') {
@@ -90,7 +96,6 @@ module.exports = {
 }
 ```
 
-## license
-
+## License
 ISC, since it's the NPM default.
-Adam Kiss 2021
+Adam Kiss 2025

@@ -1,8 +1,9 @@
 {
   "name": "hash-and-manifest",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "Hash directory files a generate configurable manifest",
-  "main": "index.js",
+  "type": "module",
+  "main": "src/index.js",
   "bin": {
     "hash-and-manifest": "src/index.js"
   },
@@ -27,6 +28,6 @@
   },
   "homepage": "https://github.com/adamkiss/hash-and-manifest#readme",
   "dependencies": {
-    "hasha": "^5.2.2"
+    "hasha": "^6.0.0"
   }
 }
